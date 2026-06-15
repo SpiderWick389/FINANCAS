@@ -29,6 +29,14 @@
         </div>
       </header>
 
+      <nav class="quick-nav" aria-label="Navegacao principal">
+        <a href="#monthPanel">Mes</a>
+        <a href="#registerPanel">Registrar</a>
+        <a href="#riskPanel">Risco</a>
+        <a href="#accountsPanel">Contas</a>
+        <a href="#wishlistPanel">Compras</a>
+      </nav>
+
       <main>
         <section class="question-banner" id="dailyQuestion">
           <div>
@@ -79,7 +87,7 @@
         </section>
 
         <section class="main-grid">
-          <section class="panel">
+          <section class="panel" id="registerPanel">
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Registro</p>
@@ -163,10 +171,10 @@
             </form>
           </section>
 
-          <section class="panel">
+          <section class="panel" id="riskPanel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">AI de risco local</p>
+                <p class="eyebrow">Analise de risco</p>
                 <h2>Simular compra ou parcelamento</h2>
               </div>
             </div>
@@ -199,7 +207,7 @@
           </section>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="monthPanel">
           <div class="panel-header responsive-header">
             <div>
               <p class="eyebrow">Mes</p>
@@ -211,10 +219,14 @@
             </label>
           </div>
           <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
+          <div class="chart-legend" aria-label="Legenda do grafico">
+            <span><i class="legend-dot paid-dot"></i>Pagas</span>
+            <span><i class="legend-dot pending-dot"></i>Pendentes</span>
+          </div>
         </section>
 
         <section class="main-grid">
-          <section class="panel wide-panel">
+          <section class="panel wide-panel" id="accountsPanel">
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Contas</p>
@@ -246,7 +258,7 @@
             <div id="historyList" class="entry-list compact"></div>
           </section>
 
-          <section class="panel">
+          <section class="panel" id="wishlistPanel">
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Compras</p>
