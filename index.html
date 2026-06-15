@@ -4,40 +4,86 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Financeiro do Casal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div class="brand">
-          <div class="shark-mark" aria-label="Tubarao">
-            <svg viewBox="0 0 120 72" role="img" aria-hidden="true">
-              <path d="M8 42C28 20 56 13 88 24L110 10 102 34 116 46 92 47C63 70 30 66 8 42Z" />
-              <path class="shark-belly" d="M13 43C35 51 62 51 91 43C66 63 34 63 13 43Z" />
-              <circle cx="79" cy="30" r="3" />
-            </svg>
-          </div>
-          <div>
-            <p class="eyebrow">Financeiro do casal</p>
-            <h1>Contas, compras e parcelas</h1>
-          </div>
+      <header class="app-header" id="homePanel">
+        <div class="header-copy">
+          <p class="eyebrow">Financeiro do casal</p>
+          <h1>Ola, casal</h1>
+          <p class="header-note">Contas, compras e parcelas em um painel compartilhado.</p>
         </div>
-        <div class="top-actions">
+        <div class="header-tools">
           <span class="storage-status" id="storageStatus">Banco local</span>
-          <button class="button primary" id="newBillButton" type="button">Tenho conta nova</button>
-          <button class="button danger" id="clearDataButton" type="button">Limpar dados</button>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="Alternar tema">
+            <span class="theme-glyph" aria-hidden="true"></span>
+          </button>
         </div>
       </header>
 
-      <nav class="quick-nav" aria-label="Navegacao principal">
-        <a href="#monthPanel">Mes</a>
-        <a href="#registerPanel">Registrar</a>
-        <a href="#riskPanel">Risco</a>
-        <a href="#accountsPanel">Contas</a>
-        <a href="#wishlistPanel">Compras</a>
-      </nav>
-
       <main>
+        <section class="hero-grid">
+          <article class="hero-card balance-card">
+            <div class="hero-head">
+              <div>
+                <p class="card-kicker">Saldo atual</p>
+                <h2 id="heroBalanceAmount">R$ 0,00</h2>
+              </div>
+              <button class="floating-action" id="newBillButton" type="button" aria-label="Adicionar conta">+</button>
+            </div>
+            <div class="hero-badges">
+              <span class="soft-chip" id="heroMonthChip">Mes atual</span>
+              <span class="soft-chip" id="heroPendingCount">0 pendentes</span>
+            </div>
+            <p class="hero-meta" id="heroBalanceMeta">Cadastre sua base e suas contas para ver o fluxo real do mes.</p>
+          </article>
+
+          <article class="hero-card activity-card" id="monthPanel">
+            <div class="panel-header compact-header">
+              <div>
+                <p class="eyebrow">Activity</p>
+                <h2>Resumo do mes</h2>
+              </div>
+              <label class="month-selector">
+                Mes
+                <input id="monthFilter" type="month" />
+              </label>
+            </div>
+
+            <div class="ring-layout">
+              <div id="overviewDonut" class="donut-shell" aria-label="Resumo circular do mes"></div>
+              <div class="ring-copy">
+                <strong id="overviewCenterAmount">R$ 0,00</strong>
+                <span id="overviewCenterLabel">Livre no mes</span>
+              </div>
+            </div>
+
+            <div class="mini-stats" aria-label="Resumo financeiro do mes">
+              <article class="mini-stat-card">
+                <span>Renda</span>
+                <strong id="incomeTotal">R$ 0,00</strong>
+              </article>
+              <article class="mini-stat-card">
+                <span>Pagas</span>
+                <strong id="paidTotal">R$ 0,00</strong>
+              </article>
+              <article class="mini-stat-card">
+                <span>Pendentes</span>
+                <strong id="pendingTotal">R$ 0,00</strong>
+              </article>
+              <article class="mini-stat-card">
+                <span>Sobra</span>
+                <strong id="freeBalanceTotal">R$ 0,00</strong>
+                <small id="freeBalanceHint">Renda menos compromissos do mes</small>
+              </article>
+            </div>
+          </article>
+        </section>
+
         <section class="question-banner" id="dailyQuestion">
           <div>
             <strong>Tem alguma conta, Pix ou compra nova hoje?</strong>
@@ -49,44 +95,92 @@
           </div>
         </section>
 
-        <section class="settings-panel">
-          <form id="settingsForm" class="settings-form">
-            <label>
-              Renda mensal do casal
-              <input id="monthlyIncomeInput" type="number" min="0" step="0.01" placeholder="0,00" />
-            </label>
-            <label>
-              Saldo atual aproximado
-              <input id="currentBalanceInput" type="number" step="0.01" placeholder="0,00" />
-            </label>
-            <button class="button primary" type="submit">Salvar base</button>
-          </form>
+        <section class="dashboard-grid">
+          <div class="dashboard-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Upcoming payment</p>
+                  <h2>Proximas contas</h2>
+                </div>
+                <a class="panel-link" href="#accountsPanel">Ver tudo</a>
+              </div>
+              <div id="upcomingList" class="payment-strip"></div>
+            </section>
+
+            <section class="panel" id="recentPanel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Recent transactions</p>
+                  <h2>Movimentacoes recentes</h2>
+                </div>
+              </div>
+              <div id="historyList" class="history-list"></div>
+            </section>
+          </div>
+
+          <div class="dashboard-column">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Quick menu</p>
+                  <h2>Acoes rapidas</h2>
+                </div>
+              </div>
+              <div class="quick-grid">
+                <a class="quick-card" href="#registerPanel">
+                  <span class="quick-icon">+</span>
+                  <strong>Registrar conta</strong>
+                </a>
+                <a class="quick-card" href="#riskPanel">
+                  <span class="quick-icon">%</span>
+                  <strong>Simular risco</strong>
+                </a>
+                <a class="quick-card" href="#wishlistPanel">
+                  <span class="quick-icon">#</span>
+                  <strong>Lista de compras</strong>
+                </a>
+                <a class="quick-card" href="#settingsPanel">
+                  <span class="quick-icon">=</span>
+                  <strong>Base financeira</strong>
+                </a>
+              </div>
+            </section>
+
+            <section class="panel" id="wishlistPanel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Wishlist</p>
+                  <h2>Coisas que queremos comprar</h2>
+                </div>
+              </div>
+              <form id="wishlistForm" class="stacked-form">
+                <label>
+                  Item
+                  <input id="wishlistTitleInput" type="text" maxlength="90" placeholder="Ex: guarda-roupa, celular, viagem" required />
+                </label>
+                <div class="form-row">
+                  <label>
+                    Valor estimado
+                    <input id="wishlistAmountInput" type="number" min="0" step="0.01" placeholder="0,00" />
+                  </label>
+                  <label>
+                    Prioridade
+                    <select id="wishlistPriorityInput">
+                      <option value="Alta">Alta</option>
+                      <option value="Media" selected>Media</option>
+                      <option value="Baixa">Baixa</option>
+                    </select>
+                  </label>
+                </div>
+                <button class="button primary" type="submit">Adicionar desejo</button>
+              </form>
+              <div id="wishlistList" class="wishlist-list"></div>
+            </section>
+          </div>
         </section>
 
-        <section class="summary-grid" aria-label="Resumo do mes">
-          <article class="metric-card">
-            <span>Renda configurada</span>
-            <strong id="incomeTotal">R$ 0,00</strong>
-            <small>Base usada nas projecoes</small>
-          </article>
-          <article class="metric-card">
-            <span>Pagas no mes</span>
-            <strong id="paidTotal">R$ 0,00</strong>
-            <small>Contas marcadas como pagas</small>
-          </article>
-          <article class="metric-card">
-            <span>Pendentes no mes</span>
-            <strong id="pendingTotal">R$ 0,00</strong>
-            <small>O que ainda falta pagar</small>
-          </article>
-          <article class="metric-card">
-            <span>Sobra prevista</span>
-            <strong id="freeBalanceTotal">R$ 0,00</strong>
-            <small id="freeBalanceHint">Renda menos compromissos do mes</small>
-          </article>
-        </section>
-
-        <section class="main-grid">
+        <section class="workspace-grid">
           <section class="panel" id="registerPanel">
             <div class="panel-header">
               <div>
@@ -207,25 +301,7 @@
           </section>
         </section>
 
-        <section class="panel" id="monthPanel">
-          <div class="panel-header responsive-header">
-            <div>
-              <p class="eyebrow">Mes</p>
-              <h2>Grafico mensal de contas</h2>
-            </div>
-            <label class="month-selector">
-              Mes analisado
-              <input id="monthFilter" type="month" />
-            </label>
-          </div>
-          <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
-          <div class="chart-legend" aria-label="Legenda do grafico">
-            <span><i class="legend-dot paid-dot"></i>Pagas</span>
-            <span><i class="legend-dot pending-dot"></i>Pendentes</span>
-          </div>
-        </section>
-
-        <section class="main-grid">
+        <section class="workspace-grid">
           <section class="panel wide-panel" id="accountsPanel">
             <div class="panel-header">
               <div>
@@ -236,7 +312,7 @@
             <div id="monthEntriesList" class="entry-list"></div>
           </section>
 
-          <section class="panel">
+          <section class="panel" id="projectionPanel">
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Projecao</p>
@@ -247,49 +323,49 @@
           </section>
         </section>
 
-        <section class="main-grid">
-          <section class="panel wide-panel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Historico</p>
-                <h2>Movimentacoes registradas</h2>
-              </div>
+        <section class="panel trend-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Payment history</p>
+              <h2>Evolucao mensal</h2>
             </div>
-            <div id="historyList" class="entry-list compact"></div>
-          </section>
+          </div>
+          <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
+          <div class="chart-legend" aria-label="Legenda do grafico">
+            <span><i class="legend-dot paid-dot"></i>Pagas</span>
+            <span><i class="legend-dot pending-dot"></i>Pendentes</span>
+          </div>
+        </section>
 
-          <section class="panel" id="wishlistPanel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Compras</p>
-                <h2>Coisas que queremos comprar</h2>
-              </div>
+        <section class="panel settings-panel" id="settingsPanel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Base</p>
+              <h2>Renda e saldo do casal</h2>
             </div>
-            <form id="wishlistForm" class="stacked-form">
-              <label>
-                Item
-                <input id="wishlistTitleInput" type="text" maxlength="90" placeholder="Ex: guarda-roupa, celular, viagem" required />
-              </label>
-              <div class="form-row">
-                <label>
-                  Valor estimado
-                  <input id="wishlistAmountInput" type="number" min="0" step="0.01" placeholder="0,00" />
-                </label>
-                <label>
-                  Prioridade
-                  <select id="wishlistPriorityInput">
-                    <option value="Alta">Alta</option>
-                    <option value="Media" selected>Media</option>
-                    <option value="Baixa">Baixa</option>
-                  </select>
-                </label>
-              </div>
-              <button class="button primary" type="submit">Adicionar desejo</button>
-            </form>
-            <div id="wishlistList" class="wishlist-list"></div>
-          </section>
+            <button class="button danger" id="clearDataButton" type="button">Limpar dados</button>
+          </div>
+          <form id="settingsForm" class="settings-form">
+            <label>
+              Renda mensal do casal
+              <input id="monthlyIncomeInput" type="number" min="0" step="0.01" placeholder="0,00" />
+            </label>
+            <label>
+              Saldo atual aproximado
+              <input id="currentBalanceInput" type="number" step="0.01" placeholder="0,00" />
+            </label>
+            <button class="button primary" type="submit">Salvar base</button>
+          </form>
         </section>
       </main>
+
+      <nav class="bottom-dock" aria-label="Acessos rapidos">
+        <a href="#homePanel">Inicio</a>
+        <a href="#monthPanel">Mes</a>
+        <a href="#registerPanel" class="dock-primary">Novo</a>
+        <a href="#riskPanel">Risco</a>
+        <a href="#wishlistPanel">Lista</a>
+      </nav>
 
       <footer>
         Com Firebase configurado, os dados ficam compartilhados no banco em nuvem. Login, usuarios fixos e Google Planilhas entram na proxima etapa.

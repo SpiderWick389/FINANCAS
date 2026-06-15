@@ -1,5 +1,6 @@
 const STORAGE_KEY = "financeiro-casal:v3";
 const PROMPT_KEY = "financeiro-casal:last-question";
+const THEME_KEY = "financeiro-casal:theme";
 
 const firebaseConfig = window.FINANCEIRO_FIREBASE_CONFIG || {};
 const familyId = window.FINANCEIRO_FAMILY_ID || "casal-principal";
@@ -25,6 +26,15 @@ const cloud = {
 
 const els = {
   storageStatus: document.querySelector("#storageStatus"),
+  themeToggle: document.querySelector("#themeToggle"),
+  heroBalanceAmount: document.querySelector("#heroBalanceAmount"),
+  heroMonthChip: document.querySelector("#heroMonthChip"),
+  heroPendingCount: document.querySelector("#heroPendingCount"),
+  heroBalanceMeta: document.querySelector("#heroBalanceMeta"),
+  overviewDonut: document.querySelector("#overviewDonut"),
+  overviewCenterAmount: document.querySelector("#overviewCenterAmount"),
+  overviewCenterLabel: document.querySelector("#overviewCenterLabel"),
+  upcomingList: document.querySelector("#upcomingList"),
   dailyQuestion: document.querySelector("#dailyQuestion"),
   answerYesButton: document.querySelector("#answerYesButton"),
   answerNoButton: document.querySelector("#answerNoButton"),
@@ -142,6 +152,31 @@ function monthLabel(monthKey) {
     year: "2-digit",
     timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+function daysUntil(dateString) {
+  const today = new Date(`${todayKey()}T00:00:00Z`);
+  const target = new Date(`${dateString}T00:00:00Z`);
+  return Math.round((target - today) / 86400000);
+}
+
+function dueLabel(dateString) {
+  const days = daysUntil(dateString);
+  if (days < 0) return `${Math.abs(days)} dia${Math.abs(days) === 1 ? "" : "s"} atrasado`;
+  if (days === 0) return "vence hoje";
+  if (days === 1) return "vence amanha";
+  return `${days} dias restantes`;
+}
+
+function applyTheme(theme) {
+  const selected = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = selected;
+  localStorage.setItem(THEME_KEY, selected);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
 }
 
 function setStorageStatus(text, mode = "") {
@@ -391,13 +426,46 @@ function renderSummary() {
   const monthEntries = entriesForMonth(els.monthFilter.value);
   const totals = totalsFor(monthEntries);
   const free = state.settings.monthlyIncome - totals.total;
+  const projectedBalance = state.settings.currentBalance + free;
+  const pendingCount = monthEntries.filter((entry) => entry.status !== "paid").length;
 
   els.incomeTotal.textContent = money(state.settings.monthlyIncome);
   els.paidTotal.textContent = money(totals.paid);
   els.pendingTotal.textContent = money(totals.pending);
   els.freeBalanceTotal.textContent = money(free);
-  els.freeBalanceTotal.style.color = free < 0 ? "var(--danger)" : "var(--paid)";
+  els.freeBalanceTotal.style.color = free < 0 ? "var(--danger)" : "var(--ok)";
   els.freeBalanceHint.textContent = free < 0 ? "Mes ficou acima da renda" : "Renda menos compromissos do mes";
+
+  els.heroBalanceAmount.textContent = money(projectedBalance);
+  els.heroMonthChip.textContent = monthLabel(els.monthFilter.value);
+  els.heroPendingCount.textContent = `${pendingCount} pendente${pendingCount === 1 ? "" : "s"}`;
+  els.heroBalanceMeta.textContent =
+    free < 0
+      ? `Atencao: o mes esta ${money(Math.abs(free))} acima da renda configurada.`
+      : `Depois das contas do mes, a sobra prevista e ${money(free)}.`;
+
+  els.overviewCenterAmount.textContent = money(free);
+  els.overviewCenterLabel.textContent = free < 0 ? "acima da renda" : "livre no mes";
+  renderOverviewDonut(totals, free);
+}
+
+function renderOverviewDonut(totals, free) {
+  const base = Math.max(state.settings.monthlyIncome, totals.total, 1);
+  const paid = Math.min((totals.paid / base) * 100, 100);
+  const pending = Math.min((totals.pending / base) * 100, 100 - paid);
+  const available = Math.max(100 - paid - pending, 0);
+  const paidEnd = paid;
+  const pendingEnd = paid + pending;
+  const availableEnd = paid + pending + available;
+  const gradient =
+    totals.total === 0 && state.settings.monthlyIncome === 0
+      ? "conic-gradient(var(--accent-4) 0 100%)"
+      : `conic-gradient(var(--ok) 0 ${paidEnd}%, var(--danger) ${paidEnd}% ${pendingEnd}%, var(--accent) ${pendingEnd}% ${availableEnd}%, var(--accent-4) ${availableEnd}% 100%)`;
+
+  els.overviewDonut.innerHTML = `
+    <div class="donut-ring" style="background: ${gradient}"></div>
+    <div class="donut-hole"></div>
+  `;
 }
 
 function renderMonthlyChart() {
@@ -434,19 +502,19 @@ function entrySubtitle(entry) {
   return `${entry.kind} - ${entry.person} - ${entry.category}${installment}`;
 }
 
-function renderEntryItem(entry, compact = false) {
+function renderAccountItem(entry, compact = false) {
   const statusLabel = entry.status === "paid" ? "Paga" : "Pendente";
   const date = dateFormatter.format(new Date(`${entry.date}T00:00:00Z`));
   return `
-    <article class="entry-item">
-      <div class="entry-title">
-        <div>
+    <article class="account-card">
+      <div class="account-top">
+        <div class="account-main">
           <strong>${escapeHtml(entry.description)}</strong>
           <span>${entrySubtitle(entry)}</span>
         </div>
-        <strong>${money(entry.amount)}</strong>
+        <strong class="account-amount">${money(entry.amount)}</strong>
       </div>
-      <div class="entry-meta">
+      <div class="account-meta">
         <span>${date}</span>
         <span class="pill ${entry.status === "paid" ? "paid" : "pending"}">${statusLabel}</span>
         ${compact ? `<span class="pill neutral">${monthLabel(entry.month)}</span>` : ""}
@@ -468,7 +536,7 @@ function renderMonthEntries() {
     return;
   }
 
-  els.monthEntriesList.innerHTML = entries.map((entry) => renderEntryItem(entry)).join("");
+  els.monthEntriesList.innerHTML = entries.map((entry) => renderAccountItem(entry)).join("");
 }
 
 function renderHistory() {
@@ -478,7 +546,52 @@ function renderHistory() {
     return;
   }
 
-  els.historyList.innerHTML = entries.map((entry) => renderEntryItem(entry, true)).join("");
+  els.historyList.innerHTML = entries
+    .map((entry) => {
+      const date = dateFormatter.format(new Date(`${entry.date}T00:00:00Z`));
+      const sign = entry.status === "paid" ? "-" : "";
+      return `
+        <article class="history-item">
+          <span class="history-avatar">${escapeHtml(entry.kind.slice(0, 1))}</span>
+          <div class="history-main">
+            <div class="history-copy">
+              <strong>${escapeHtml(entry.description)}</strong>
+              <span>${date} - ${entrySubtitle(entry)}</span>
+            </div>
+            <span class="history-amount">${sign}${money(entry.amount)}</span>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderUpcomingList() {
+  const entries = [...state.entries]
+    .filter((entry) => entry.status !== "paid")
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 2);
+
+  if (!entries.length) {
+    els.upcomingList.innerHTML = '<p class="empty-state">Nenhuma conta pendente agora.</p>';
+    return;
+  }
+
+  els.upcomingList.innerHTML = entries
+    .map((entry, index) => `
+      <article class="payment-card ${index === 0 ? "featured" : ""}">
+        <div class="payment-head">
+          <span class="payment-badge">${escapeHtml(entry.kind.slice(0, 1))}</span>
+          <span class="payment-menu">...</span>
+        </div>
+        <div>
+          <h3>${escapeHtml(entry.description)}</h3>
+          <div class="payment-price">${money(entry.amount)}<span>${entry.installments > 1 ? `/${entry.installments}x` : ""}</span></div>
+        </div>
+        <span class="payment-foot">${dueLabel(entry.date)}</span>
+      </article>
+    `)
+    .join("");
 }
 
 function renderProjection() {
@@ -549,6 +662,7 @@ function render() {
   renderSummary();
   renderMonthlyChart();
   renderMonthEntries();
+  renderUpcomingList();
   renderProjection();
   renderHistory();
   renderWishlist();
@@ -780,6 +894,7 @@ function bindEvents() {
   els.answerNoButton.addEventListener("click", hideDailyQuestionForToday);
   els.newBillButton.addEventListener("click", scrollToEntryForm);
   els.clearDataButton.addEventListener("click", clearData);
+  els.themeToggle.addEventListener("click", toggleTheme);
 
   [els.monthEntriesList, els.historyList, els.wishlistList].forEach((list) => {
     list.addEventListener("click", handleListClick);
@@ -791,6 +906,7 @@ function initPrompt() {
 }
 
 function init() {
+  applyTheme(localStorage.getItem(THEME_KEY) || "light");
   loadLocalSnapshot();
   renderSettingsInputs();
   els.monthFilter.value = currentMonthKey();
