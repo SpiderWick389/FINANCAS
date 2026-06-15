@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financeiro do Casal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="shark-mark" aria-label="Tubarao">
+            <svg viewBox="0 0 120 72" role="img" aria-hidden="true">
+              <path d="M8 42C28 20 56 13 88 24L110 10 102 34 116 46 92 47C63 70 30 66 8 42Z" />
+              <path class="shark-belly" d="M13 43C35 51 62 51 91 43C66 63 34 63 13 43Z" />
+              <circle cx="79" cy="30" r="3" />
+            </svg>
+          </div>
+          <div>
+            <p class="eyebrow">Financeiro do casal</p>
+            <h1>Contas, compras e parcelas</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <span class="storage-status" id="storageStatus">Banco local</span>
+          <button class="button primary" id="newBillButton" type="button">Tenho conta nova</button>
+          <button class="button danger" id="clearDataButton" type="button">Limpar dados</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="question-banner" id="dailyQuestion">
+          <div>
+            <strong>Tem alguma conta, Pix ou compra nova hoje?</strong>
+            <span>Registre agora para a projecao nao ficar atrasada.</span>
+          </div>
+          <div class="banner-actions">
+            <button class="button primary" id="answerYesButton" type="button">Adicionar agora</button>
+            <button class="button ghost" id="answerNoButton" type="button">Agora nao</button>
+          </div>
+        </section>
+
+        <section class="settings-panel">
+          <form id="settingsForm" class="settings-form">
+            <label>
+              Renda mensal do casal
+              <input id="monthlyIncomeInput" type="number" min="0" step="0.01" placeholder="0,00" />
+            </label>
+            <label>
+              Saldo atual aproximado
+              <input id="currentBalanceInput" type="number" step="0.01" placeholder="0,00" />
+            </label>
+            <button class="button primary" type="submit">Salvar base</button>
+          </form>
+        </section>
+
+        <section class="summary-grid" aria-label="Resumo do mes">
+          <article class="metric-card">
+            <span>Renda configurada</span>
+            <strong id="incomeTotal">R$ 0,00</strong>
+            <small>Base usada nas projecoes</small>
+          </article>
+          <article class="metric-card">
+            <span>Pagas no mes</span>
+            <strong id="paidTotal">R$ 0,00</strong>
+            <small>Contas marcadas como pagas</small>
+          </article>
+          <article class="metric-card">
+            <span>Pendentes no mes</span>
+            <strong id="pendingTotal">R$ 0,00</strong>
+            <small>O que ainda falta pagar</small>
+          </article>
+          <article class="metric-card">
+            <span>Sobra prevista</span>
+            <strong id="freeBalanceTotal">R$ 0,00</strong>
+            <small id="freeBalanceHint">Renda menos compromissos do mes</small>
+          </article>
+        </section>
+
+        <section class="main-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Registro</p>
+                <h2>Conta ou compra nova</h2>
+              </div>
+            </div>
+
+            <form id="entryForm" class="stacked-form">
+              <div class="form-row">
+                <label>
+                  Tipo
+                  <select id="kindInput" required>
+                    <option value="Conta">Conta</option>
+                    <option value="Compra">Compra</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Acordo">Acordo</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </label>
+                <label>
+                  De quem
+                  <select id="personInput" required>
+                    <option value="Casal">Casal</option>
+                    <option value="Eu">Eu</option>
+                    <option value="Esposa">Esposa</option>
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                Descricao
+                <input id="descriptionInput" type="text" maxlength="90" placeholder="Ex: mercado, cartao, internet, sofa" required />
+              </label>
+
+              <div class="form-row">
+                <label>
+                  Valor total
+                  <input id="amountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+                </label>
+                <label>
+                  Vencimento / compra
+                  <input id="dateInput" type="date" required />
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label>
+                  Forma
+                  <select id="paymentModeInput">
+                    <option value="cash">A vista</option>
+                    <option value="installments">Parcelado</option>
+                  </select>
+                </label>
+                <label>
+                  Parcelas
+                  <input id="installmentsInput" type="number" min="1" max="72" step="1" value="1" />
+                </label>
+              </div>
+
+              <label>
+                Categoria
+                <select id="categoryInput">
+                  <option value="Casa">Casa</option>
+                  <option value="Alimentacao">Alimentacao</option>
+                  <option value="Transporte">Transporte</option>
+                  <option value="Saude">Saude</option>
+                  <option value="Lazer">Lazer</option>
+                  <option value="Cartao">Cartao</option>
+                  <option value="Acordo">Acordo</option>
+                  <option value="Pessoal">Pessoal</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </label>
+
+              <label class="checkbox-line">
+                <input id="paidNowInput" type="checkbox" />
+                Ja foi pago
+              </label>
+
+              <button class="button primary" type="submit">Adicionar no financeiro</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">AI de risco local</p>
+                <h2>Simular compra ou parcelamento</h2>
+              </div>
+            </div>
+
+            <form id="riskForm" class="stacked-form">
+              <label>
+                O que quer comprar?
+                <input id="riskDescriptionInput" type="text" maxlength="90" placeholder="Ex: celular, viagem, acordo" />
+              </label>
+              <div class="form-row">
+                <label>
+                  Valor total
+                  <input id="riskAmountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+                </label>
+                <label>
+                  Parcelas
+                  <input id="riskInstallmentsInput" type="number" min="1" max="72" step="1" value="1" required />
+                </label>
+              </div>
+              <label>
+                Primeiro mes de impacto
+                <input id="riskStartMonthInput" type="month" required />
+              </label>
+              <button class="button primary" type="submit">Analisar risco</button>
+            </form>
+
+            <div id="riskResult" class="risk-result empty-state">
+              Configure sua renda e simule uma compra para ver o impacto nos proximos meses.
+            </div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header responsive-header">
+            <div>
+              <p class="eyebrow">Mes</p>
+              <h2>Grafico mensal de contas</h2>
+            </div>
+            <label class="month-selector">
+              Mes analisado
+              <input id="monthFilter" type="month" />
+            </label>
+          </div>
+          <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
+        </section>
+
+        <section class="main-grid">
+          <section class="panel wide-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Contas</p>
+                <h2>Contas do mes</h2>
+              </div>
+            </div>
+            <div id="monthEntriesList" class="entry-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Projecao</p>
+                <h2>Saldo dos proximos meses</h2>
+              </div>
+            </div>
+            <div id="projectionList" class="projection-list"></div>
+          </section>
+        </section>
+
+        <section class="main-grid">
+          <section class="panel wide-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Historico</p>
+                <h2>Movimentacoes registradas</h2>
+              </div>
+            </div>
+            <div id="historyList" class="entry-list compact"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Compras</p>
+                <h2>Coisas que queremos comprar</h2>
+              </div>
+            </div>
+            <form id="wishlistForm" class="stacked-form">
+              <label>
+                Item
+                <input id="wishlistTitleInput" type="text" maxlength="90" placeholder="Ex: guarda-roupa, celular, viagem" required />
+              </label>
+              <div class="form-row">
+                <label>
+                  Valor estimado
+                  <input id="wishlistAmountInput" type="number" min="0" step="0.01" placeholder="0,00" />
+                </label>
+                <label>
+                  Prioridade
+                  <select id="wishlistPriorityInput">
+                    <option value="Alta">Alta</option>
+                    <option value="Media" selected>Media</option>
+                    <option value="Baixa">Baixa</option>
+                  </select>
+                </label>
+              </div>
+              <button class="button primary" type="submit">Adicionar desejo</button>
+            </form>
+            <div id="wishlistList" class="wishlist-list"></div>
+          </section>
+        </section>
+      </main>
+
+      <footer>
+        Com Firebase configurado, os dados ficam compartilhados no banco em nuvem. Login, usuarios fixos e Google Planilhas entram na proxima etapa.
+      </footer>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script defer src="app.js"></script>
+  </body>
+</html>
