@@ -234,9 +234,39 @@ a {
   gap: 18px;
 }
 
+.tab-shell {
+  min-height: 560px;
+}
+
+.tab-screen {
+  animation: tabFade 180ms ease;
+}
+
+.tab-screen[hidden] {
+  display: none;
+}
+
+@keyframes tabFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .hero-grid {
   grid-template-columns: 1.05fr 0.95fr;
   margin-bottom: 18px;
+}
+
+.home-hero,
+.month-hero,
+.single-workspace {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .dashboard-grid,
@@ -493,6 +523,8 @@ a {
 }
 
 .panel-link {
+  border: 0;
+  background: transparent;
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 800;
@@ -619,6 +651,8 @@ a {
   display: grid;
   gap: 14px;
   padding: 18px;
+  color: var(--text);
+  text-align: left;
   text-decoration: none;
   background: var(--panel-gradient);
 }
@@ -981,24 +1015,50 @@ select:focus {
   box-shadow: var(--shadow-strong);
 }
 
-.bottom-dock a {
+.bottom-dock button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-width: 66px;
   min-height: 44px;
   padding: 0 14px;
+  border: 0;
   border-radius: 999px;
+  background: transparent;
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 800;
   text-decoration: none;
 }
 
+.dock-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+}
+
+.bottom-dock button.is-active {
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
 .bottom-dock .dock-primary {
   min-width: 70px;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
   color: #fff;
+}
+
+.bottom-dock .dock-primary.is-active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
 }
 
 :root[data-theme="dark"] .bottom-dock .dock-primary {
@@ -1103,11 +1163,39 @@ footer {
     justify-content: space-between;
   }
 
-  .bottom-dock a {
+  .bottom-dock button {
     min-width: 0;
     flex: 1 1 0;
     padding: 0 8px;
     font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .app-shell {
+    padding-left: 98px;
+  }
+
+  .bottom-dock {
+    left: 24px;
+    top: 50%;
+    bottom: auto;
+    flex-direction: column;
+    transform: translateY(-50%);
+  }
+
+  .bottom-dock button {
+    width: 58px;
+    min-width: 58px;
+    height: 58px;
+    padding: 0;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.68rem;
+  }
+
+  .bottom-dock .dock-primary {
+    min-width: 58px;
   }
 }
 

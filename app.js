@@ -74,6 +74,9 @@ const els = {
   wishlistAmountInput: document.querySelector("#wishlistAmountInput"),
   wishlistPriorityInput: document.querySelector("#wishlistPriorityInput"),
   wishlistList: document.querySelector("#wishlistList"),
+  tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
+  tabButtons: Array.from(document.querySelectorAll("[data-tab-target]")),
+  tabOpeners: Array.from(document.querySelectorAll("[data-open-tab]")),
 };
 
 const currency = new Intl.NumberFormat("pt-BR", {
@@ -177,6 +180,53 @@ function applyTheme(theme) {
 function toggleTheme() {
   const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   applyTheme(current === "dark" ? "light" : "dark");
+}
+
+function tabFromHash(hash = window.location.hash) {
+  const panelId = String(hash || "").replace("#", "");
+  const tabMap = {
+    homePanel: "home",
+    monthPanel: "month",
+    accountsPanel: "month",
+    projectionPanel: "month",
+    registerPanel: "register",
+    riskPanel: "risk",
+    wishlistPanel: "wishlist",
+    settingsPanel: "settings",
+  };
+  return tabMap[panelId] || "home";
+}
+
+function openTab(tabName, options = {}) {
+  const selected = els.tabPanels.some((panel) => panel.dataset.tabPanel === tabName) ? tabName : "home";
+  let activePanel = null;
+
+  els.tabPanels.forEach((panel) => {
+    const isActive = panel.dataset.tabPanel === selected;
+    panel.hidden = !isActive;
+    panel.classList.toggle("is-active", isActive);
+    if (isActive) activePanel = panel;
+  });
+
+  els.tabButtons.forEach((button) => {
+    const isActive = button.dataset.tabTarget === selected;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  document.body.dataset.activeTab = selected;
+
+  if (options.updateHash !== false && activePanel?.id) {
+    history.replaceState(null, "", `#${activePanel.id}`);
+  }
+
+  if (options.scroll !== false) {
+    window.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
+  }
+
+  if (options.focusSelector) {
+    window.setTimeout(() => document.querySelector(options.focusSelector)?.focus(), 120);
+  }
 }
 
 function setStorageStatus(text, mode = "") {
@@ -857,8 +907,7 @@ async function clearData() {
 }
 
 function scrollToEntryForm() {
-  els.descriptionInput.focus();
-  window.scrollTo({ top: els.entryForm.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+  openTab("register", { focusSelector: "#descriptionInput" });
 }
 
 async function handleListClick(event) {
@@ -896,6 +945,19 @@ function bindEvents() {
   els.clearDataButton.addEventListener("click", clearData);
   els.themeToggle.addEventListener("click", toggleTheme);
 
+  els.tabButtons.forEach((button) => {
+    button.addEventListener("click", () => openTab(button.dataset.tabTarget));
+  });
+
+  els.tabOpeners.forEach((opener) => {
+    opener.addEventListener("click", (event) => {
+      event.preventDefault();
+      openTab(opener.dataset.openTab);
+    });
+  });
+
+  window.addEventListener("hashchange", () => openTab(tabFromHash(), { updateHash: false, instant: true }));
+
   [els.monthEntriesList, els.historyList, els.wishlistList].forEach((list) => {
     list.addEventListener("click", handleListClick);
   });
@@ -907,6 +969,7 @@ function initPrompt() {
 
 function init() {
   applyTheme(localStorage.getItem(THEME_KEY) || "light");
+  openTab(tabFromHash(), { updateHash: false, scroll: false });
   loadLocalSnapshot();
   renderSettingsInputs();
   els.monthFilter.value = currentMonthKey();

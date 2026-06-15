@@ -11,7 +11,7 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="app-header" id="homePanel">
+      <header class="app-header">
         <div class="header-copy">
           <p class="eyebrow">Financeiro do casal</p>
           <h1>Ola, casal</h1>
@@ -25,129 +25,302 @@
         </div>
       </header>
 
-      <main>
-        <section class="hero-grid">
-          <article class="hero-card balance-card">
-            <div class="hero-head">
-              <div>
-                <p class="card-kicker">Saldo atual</p>
-                <h2 id="heroBalanceAmount">R$ 0,00</h2>
+      <main class="tab-shell">
+        <section class="tab-screen is-active" id="homePanel" data-tab-panel="home" aria-labelledby="homeTab">
+          <section class="hero-grid home-hero">
+            <article class="hero-card balance-card">
+              <div class="hero-head">
+                <div>
+                  <p class="card-kicker">Saldo atual</p>
+                  <h2 id="heroBalanceAmount">R$ 0,00</h2>
+                </div>
+                <button class="floating-action" id="newBillButton" type="button" aria-label="Adicionar conta">+</button>
               </div>
-              <button class="floating-action" id="newBillButton" type="button" aria-label="Adicionar conta">+</button>
-            </div>
-            <div class="hero-badges">
-              <span class="soft-chip" id="heroMonthChip">Mes atual</span>
-              <span class="soft-chip" id="heroPendingCount">0 pendentes</span>
-            </div>
-            <p class="hero-meta" id="heroBalanceMeta">Cadastre sua base e suas contas para ver o fluxo real do mes.</p>
-          </article>
-
-          <article class="hero-card activity-card" id="monthPanel">
-            <div class="panel-header compact-header">
-              <div>
-                <p class="eyebrow">Activity</p>
-                <h2>Resumo do mes</h2>
+              <div class="hero-badges">
+                <span class="soft-chip" id="heroMonthChip">Mes atual</span>
+                <span class="soft-chip" id="heroPendingCount">0 pendentes</span>
               </div>
-              <label class="month-selector">
-                Mes
-                <input id="monthFilter" type="month" />
-              </label>
+              <p class="hero-meta" id="heroBalanceMeta">Cadastre sua base e suas contas para ver o fluxo real do mes.</p>
+            </article>
+          </section>
+
+          <section class="question-banner" id="dailyQuestion">
+            <div>
+              <strong>Tem alguma conta, Pix ou compra nova hoje?</strong>
+              <span>Registre agora para a projecao nao ficar atrasada.</span>
+            </div>
+            <div class="banner-actions">
+              <button class="button primary" id="answerYesButton" type="button">Adicionar agora</button>
+              <button class="button ghost" id="answerNoButton" type="button">Agora nao</button>
+            </div>
+          </section>
+
+          <section class="dashboard-grid">
+            <div class="dashboard-column">
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Upcoming payment</p>
+                    <h2>Proximas contas</h2>
+                  </div>
+                  <button class="panel-link" type="button" data-open-tab="month">Ver tudo</button>
+                </div>
+                <div id="upcomingList" class="payment-strip"></div>
+              </section>
+
+              <section class="panel" id="recentPanel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Recent transactions</p>
+                    <h2>Movimentacoes recentes</h2>
+                  </div>
+                </div>
+                <div id="historyList" class="history-list"></div>
+              </section>
             </div>
 
-            <div class="ring-layout">
-              <div id="overviewDonut" class="donut-shell" aria-label="Resumo circular do mes"></div>
-              <div class="ring-copy">
-                <strong id="overviewCenterAmount">R$ 0,00</strong>
-                <span id="overviewCenterLabel">Livre no mes</span>
-              </div>
+            <div class="dashboard-column">
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Quick menu</p>
+                    <h2>Acoes rapidas</h2>
+                  </div>
+                </div>
+                <div class="quick-grid">
+                  <button class="quick-card" type="button" data-open-tab="register">
+                    <span class="quick-icon">+</span>
+                    <strong>Registrar conta</strong>
+                  </button>
+                  <button class="quick-card" type="button" data-open-tab="risk">
+                    <span class="quick-icon">%</span>
+                    <strong>Simular risco</strong>
+                  </button>
+                  <button class="quick-card" type="button" data-open-tab="wishlist">
+                    <span class="quick-icon">#</span>
+                    <strong>Lista de compras</strong>
+                  </button>
+                  <button class="quick-card" type="button" data-open-tab="settings">
+                    <span class="quick-icon">=</span>
+                    <strong>Base financeira</strong>
+                  </button>
+                </div>
+              </section>
             </div>
-
-            <div class="mini-stats" aria-label="Resumo financeiro do mes">
-              <article class="mini-stat-card">
-                <span>Renda</span>
-                <strong id="incomeTotal">R$ 0,00</strong>
-              </article>
-              <article class="mini-stat-card">
-                <span>Pagas</span>
-                <strong id="paidTotal">R$ 0,00</strong>
-              </article>
-              <article class="mini-stat-card">
-                <span>Pendentes</span>
-                <strong id="pendingTotal">R$ 0,00</strong>
-              </article>
-              <article class="mini-stat-card">
-                <span>Sobra</span>
-                <strong id="freeBalanceTotal">R$ 0,00</strong>
-                <small id="freeBalanceHint">Renda menos compromissos do mes</small>
-              </article>
-            </div>
-          </article>
+          </section>
         </section>
 
-        <section class="question-banner" id="dailyQuestion">
-          <div>
-            <strong>Tem alguma conta, Pix ou compra nova hoje?</strong>
-            <span>Registre agora para a projecao nao ficar atrasada.</span>
-          </div>
-          <div class="banner-actions">
-            <button class="button primary" id="answerYesButton" type="button">Adicionar agora</button>
-            <button class="button ghost" id="answerNoButton" type="button">Agora nao</button>
-          </div>
+        <section class="tab-screen" id="monthPanel" data-tab-panel="month" aria-labelledby="monthTab" hidden>
+          <section class="hero-grid month-hero">
+            <article class="hero-card activity-card">
+              <div class="panel-header compact-header">
+                <div>
+                  <p class="eyebrow">Activity</p>
+                  <h2>Resumo do mes</h2>
+                </div>
+                <label class="month-selector">
+                  Mes
+                  <input id="monthFilter" type="month" />
+                </label>
+              </div>
+
+              <div class="ring-layout">
+                <div id="overviewDonut" class="donut-shell" aria-label="Resumo circular do mes"></div>
+                <div class="ring-copy">
+                  <strong id="overviewCenterAmount">R$ 0,00</strong>
+                  <span id="overviewCenterLabel">Livre no mes</span>
+                </div>
+              </div>
+
+              <div class="mini-stats" aria-label="Resumo financeiro do mes">
+                <article class="mini-stat-card">
+                  <span>Renda</span>
+                  <strong id="incomeTotal">R$ 0,00</strong>
+                </article>
+                <article class="mini-stat-card">
+                  <span>Pagas</span>
+                  <strong id="paidTotal">R$ 0,00</strong>
+                </article>
+                <article class="mini-stat-card">
+                  <span>Pendentes</span>
+                  <strong id="pendingTotal">R$ 0,00</strong>
+                </article>
+                <article class="mini-stat-card">
+                  <span>Sobra</span>
+                  <strong id="freeBalanceTotal">R$ 0,00</strong>
+                  <small id="freeBalanceHint">Renda menos compromissos do mes</small>
+                </article>
+              </div>
+            </article>
+          </section>
+
+          <section class="workspace-grid">
+            <section class="panel wide-panel" id="accountsPanel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Contas</p>
+                  <h2>Contas do mes</h2>
+                </div>
+              </div>
+              <div id="monthEntriesList" class="entry-list"></div>
+            </section>
+
+            <section class="panel" id="projectionPanel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Projecao</p>
+                  <h2>Saldo dos proximos meses</h2>
+                </div>
+              </div>
+              <div id="projectionList" class="projection-list"></div>
+            </section>
+          </section>
+
+          <section class="panel trend-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Payment history</p>
+                <h2>Evolucao mensal</h2>
+              </div>
+            </div>
+            <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
+            <div class="chart-legend" aria-label="Legenda do grafico">
+              <span><i class="legend-dot paid-dot"></i>Pagas</span>
+              <span><i class="legend-dot pending-dot"></i>Pendentes</span>
+            </div>
+          </section>
         </section>
 
-        <section class="dashboard-grid">
-          <div class="dashboard-column">
+        <section class="tab-screen" id="registerPanel" data-tab-panel="register" aria-labelledby="registerTab" hidden>
+          <section class="workspace-grid single-workspace">
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">Upcoming payment</p>
-                  <h2>Proximas contas</h2>
-                </div>
-                <a class="panel-link" href="#accountsPanel">Ver tudo</a>
-              </div>
-              <div id="upcomingList" class="payment-strip"></div>
-            </section>
-
-            <section class="panel" id="recentPanel">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">Recent transactions</p>
-                  <h2>Movimentacoes recentes</h2>
+                  <p class="eyebrow">Registro</p>
+                  <h2>Conta ou compra nova</h2>
                 </div>
               </div>
-              <div id="historyList" class="history-list"></div>
-            </section>
-          </div>
 
-          <div class="dashboard-column">
+              <form id="entryForm" class="stacked-form">
+                <div class="form-row">
+                  <label>
+                    Tipo
+                    <select id="kindInput" required>
+                      <option value="Conta">Conta</option>
+                      <option value="Compra">Compra</option>
+                      <option value="Pix">Pix</option>
+                      <option value="Acordo">Acordo</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </label>
+                  <label>
+                    De quem
+                    <select id="personInput" required>
+                      <option value="Casal">Casal</option>
+                      <option value="Eu">Eu</option>
+                      <option value="Esposa">Esposa</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  Descricao
+                  <input id="descriptionInput" type="text" maxlength="90" placeholder="Ex: mercado, cartao, internet, sofa" required />
+                </label>
+
+                <div class="form-row">
+                  <label>
+                    Valor total
+                    <input id="amountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+                  </label>
+                  <label>
+                    Vencimento / compra
+                    <input id="dateInput" type="date" required />
+                  </label>
+                </div>
+
+                <div class="form-row">
+                  <label>
+                    Forma
+                    <select id="paymentModeInput">
+                      <option value="cash">A vista</option>
+                      <option value="installments">Parcelado</option>
+                    </select>
+                  </label>
+                  <label>
+                    Parcelas
+                    <input id="installmentsInput" type="number" min="1" max="72" step="1" value="1" />
+                  </label>
+                </div>
+
+                <label>
+                  Categoria
+                  <select id="categoryInput">
+                    <option value="Casa">Casa</option>
+                    <option value="Alimentacao">Alimentacao</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Saude">Saude</option>
+                    <option value="Lazer">Lazer</option>
+                    <option value="Cartao">Cartao</option>
+                    <option value="Acordo">Acordo</option>
+                    <option value="Pessoal">Pessoal</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </label>
+
+                <label class="checkbox-line">
+                  <input id="paidNowInput" type="checkbox" />
+                  Ja foi pago
+                </label>
+
+                <button class="button primary" type="submit">Adicionar no financeiro</button>
+              </form>
+            </section>
+          </section>
+        </section>
+
+        <section class="tab-screen" id="riskPanel" data-tab-panel="risk" aria-labelledby="riskTab" hidden>
+          <section class="workspace-grid single-workspace">
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">Quick menu</p>
-                  <h2>Acoes rapidas</h2>
+                  <p class="eyebrow">Analise de risco</p>
+                  <h2>Simular compra ou parcelamento</h2>
                 </div>
               </div>
-              <div class="quick-grid">
-                <a class="quick-card" href="#registerPanel">
-                  <span class="quick-icon">+</span>
-                  <strong>Registrar conta</strong>
-                </a>
-                <a class="quick-card" href="#riskPanel">
-                  <span class="quick-icon">%</span>
-                  <strong>Simular risco</strong>
-                </a>
-                <a class="quick-card" href="#wishlistPanel">
-                  <span class="quick-icon">#</span>
-                  <strong>Lista de compras</strong>
-                </a>
-                <a class="quick-card" href="#settingsPanel">
-                  <span class="quick-icon">=</span>
-                  <strong>Base financeira</strong>
-                </a>
+
+              <form id="riskForm" class="stacked-form">
+                <label>
+                  O que quer comprar?
+                  <input id="riskDescriptionInput" type="text" maxlength="90" placeholder="Ex: celular, viagem, acordo" />
+                </label>
+                <div class="form-row">
+                  <label>
+                    Valor total
+                    <input id="riskAmountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
+                  </label>
+                  <label>
+                    Parcelas
+                    <input id="riskInstallmentsInput" type="number" min="1" max="72" step="1" value="1" required />
+                  </label>
+                </div>
+                <label>
+                  Primeiro mes de impacto
+                  <input id="riskStartMonthInput" type="month" required />
+                </label>
+                <button class="button primary" type="submit">Analisar risco</button>
+              </form>
+
+              <div id="riskResult" class="risk-result empty-state">
+                Configure sua renda e simule uma compra para ver o impacto nos proximos meses.
               </div>
             </section>
+          </section>
+        </section>
 
-            <section class="panel" id="wishlistPanel">
+        <section class="tab-screen" id="wishlistPanel" data-tab-panel="wishlist" aria-labelledby="wishlistTab" hidden>
+          <section class="workspace-grid single-workspace">
+            <section class="panel">
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">Wishlist</p>
@@ -177,194 +350,56 @@
               </form>
               <div id="wishlistList" class="wishlist-list"></div>
             </section>
-          </div>
-        </section>
-
-        <section class="workspace-grid">
-          <section class="panel" id="registerPanel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Registro</p>
-                <h2>Conta ou compra nova</h2>
-              </div>
-            </div>
-
-            <form id="entryForm" class="stacked-form">
-              <div class="form-row">
-                <label>
-                  Tipo
-                  <select id="kindInput" required>
-                    <option value="Conta">Conta</option>
-                    <option value="Compra">Compra</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Acordo">Acordo</option>
-                    <option value="Outro">Outro</option>
-                  </select>
-                </label>
-                <label>
-                  De quem
-                  <select id="personInput" required>
-                    <option value="Casal">Casal</option>
-                    <option value="Eu">Eu</option>
-                    <option value="Esposa">Esposa</option>
-                  </select>
-                </label>
-              </div>
-
-              <label>
-                Descricao
-                <input id="descriptionInput" type="text" maxlength="90" placeholder="Ex: mercado, cartao, internet, sofa" required />
-              </label>
-
-              <div class="form-row">
-                <label>
-                  Valor total
-                  <input id="amountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
-                </label>
-                <label>
-                  Vencimento / compra
-                  <input id="dateInput" type="date" required />
-                </label>
-              </div>
-
-              <div class="form-row">
-                <label>
-                  Forma
-                  <select id="paymentModeInput">
-                    <option value="cash">A vista</option>
-                    <option value="installments">Parcelado</option>
-                  </select>
-                </label>
-                <label>
-                  Parcelas
-                  <input id="installmentsInput" type="number" min="1" max="72" step="1" value="1" />
-                </label>
-              </div>
-
-              <label>
-                Categoria
-                <select id="categoryInput">
-                  <option value="Casa">Casa</option>
-                  <option value="Alimentacao">Alimentacao</option>
-                  <option value="Transporte">Transporte</option>
-                  <option value="Saude">Saude</option>
-                  <option value="Lazer">Lazer</option>
-                  <option value="Cartao">Cartao</option>
-                  <option value="Acordo">Acordo</option>
-                  <option value="Pessoal">Pessoal</option>
-                  <option value="Outro">Outro</option>
-                </select>
-              </label>
-
-              <label class="checkbox-line">
-                <input id="paidNowInput" type="checkbox" />
-                Ja foi pago
-              </label>
-
-              <button class="button primary" type="submit">Adicionar no financeiro</button>
-            </form>
-          </section>
-
-          <section class="panel" id="riskPanel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Analise de risco</p>
-                <h2>Simular compra ou parcelamento</h2>
-              </div>
-            </div>
-
-            <form id="riskForm" class="stacked-form">
-              <label>
-                O que quer comprar?
-                <input id="riskDescriptionInput" type="text" maxlength="90" placeholder="Ex: celular, viagem, acordo" />
-              </label>
-              <div class="form-row">
-                <label>
-                  Valor total
-                  <input id="riskAmountInput" type="number" min="0.01" step="0.01" placeholder="0,00" required />
-                </label>
-                <label>
-                  Parcelas
-                  <input id="riskInstallmentsInput" type="number" min="1" max="72" step="1" value="1" required />
-                </label>
-              </div>
-              <label>
-                Primeiro mes de impacto
-                <input id="riskStartMonthInput" type="month" required />
-              </label>
-              <button class="button primary" type="submit">Analisar risco</button>
-            </form>
-
-            <div id="riskResult" class="risk-result empty-state">
-              Configure sua renda e simule uma compra para ver o impacto nos proximos meses.
-            </div>
           </section>
         </section>
 
-        <section class="workspace-grid">
-          <section class="panel wide-panel" id="accountsPanel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Contas</p>
-                <h2>Contas do mes</h2>
+        <section class="tab-screen" id="settingsPanel" data-tab-panel="settings" hidden>
+          <section class="workspace-grid single-workspace">
+            <section class="panel settings-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Base</p>
+                  <h2>Renda e saldo do casal</h2>
+                </div>
+                <button class="button danger" id="clearDataButton" type="button">Limpar dados</button>
               </div>
-            </div>
-            <div id="monthEntriesList" class="entry-list"></div>
+              <form id="settingsForm" class="settings-form">
+                <label>
+                  Renda mensal do casal
+                  <input id="monthlyIncomeInput" type="number" min="0" step="0.01" placeholder="0,00" />
+                </label>
+                <label>
+                  Saldo atual aproximado
+                  <input id="currentBalanceInput" type="number" step="0.01" placeholder="0,00" />
+                </label>
+                <button class="button primary" type="submit">Salvar base</button>
+              </form>
+            </section>
           </section>
-
-          <section class="panel" id="projectionPanel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Projecao</p>
-                <h2>Saldo dos proximos meses</h2>
-              </div>
-            </div>
-            <div id="projectionList" class="projection-list"></div>
-          </section>
-        </section>
-
-        <section class="panel trend-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Payment history</p>
-              <h2>Evolucao mensal</h2>
-            </div>
-          </div>
-          <div id="monthlyChart" class="month-chart" aria-label="Grafico de contas pagas e pendentes"></div>
-          <div class="chart-legend" aria-label="Legenda do grafico">
-            <span><i class="legend-dot paid-dot"></i>Pagas</span>
-            <span><i class="legend-dot pending-dot"></i>Pendentes</span>
-          </div>
-        </section>
-
-        <section class="panel settings-panel" id="settingsPanel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Base</p>
-              <h2>Renda e saldo do casal</h2>
-            </div>
-            <button class="button danger" id="clearDataButton" type="button">Limpar dados</button>
-          </div>
-          <form id="settingsForm" class="settings-form">
-            <label>
-              Renda mensal do casal
-              <input id="monthlyIncomeInput" type="number" min="0" step="0.01" placeholder="0,00" />
-            </label>
-            <label>
-              Saldo atual aproximado
-              <input id="currentBalanceInput" type="number" step="0.01" placeholder="0,00" />
-            </label>
-            <button class="button primary" type="submit">Salvar base</button>
-          </form>
         </section>
       </main>
 
-      <nav class="bottom-dock" aria-label="Acessos rapidos">
-        <a href="#homePanel">Inicio</a>
-        <a href="#monthPanel">Mes</a>
-        <a href="#registerPanel" class="dock-primary">Novo</a>
-        <a href="#riskPanel">Risco</a>
-        <a href="#wishlistPanel">Lista</a>
+      <nav class="bottom-dock" aria-label="Abas do aplicativo" role="tablist">
+        <button id="homeTab" class="is-active" type="button" role="tab" aria-selected="true" data-tab-target="home">
+          <span class="dock-icon">H</span>
+          <span>Inicio</span>
+        </button>
+        <button id="monthTab" type="button" role="tab" aria-selected="false" data-tab-target="month">
+          <span class="dock-icon">M</span>
+          <span>Mes</span>
+        </button>
+        <button id="registerTab" class="dock-primary" type="button" role="tab" aria-selected="false" data-tab-target="register">
+          <span class="dock-icon">+</span>
+          <span>Novo</span>
+        </button>
+        <button id="riskTab" type="button" role="tab" aria-selected="false" data-tab-target="risk">
+          <span class="dock-icon">%</span>
+          <span>Risco</span>
+        </button>
+        <button id="wishlistTab" type="button" role="tab" aria-selected="false" data-tab-target="wishlist">
+          <span class="dock-icon">#</span>
+          <span>Lista</span>
+        </button>
       </nav>
 
       <footer>
