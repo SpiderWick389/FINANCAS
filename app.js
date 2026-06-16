@@ -24,8 +24,23 @@ const cloud = {
   unsubscribers: [],
 };
 
+const authState = {
+  enabled: false,
+  ready: false,
+  user: null,
+  authRef: null,
+};
+
 const els = {
   storageStatus: document.querySelector("#storageStatus"),
+  authScreen: document.querySelector("#authScreen"),
+  authForm: document.querySelector("#authForm"),
+  authEmailInput: document.querySelector("#authEmailInput"),
+  authPasswordInput: document.querySelector("#authPasswordInput"),
+  createAccountButton: document.querySelector("#createAccountButton"),
+  authMessage: document.querySelector("#authMessage"),
+  authUserPill: document.querySelector("#authUserPill"),
+  logoutButton: document.querySelector("#logoutButton"),
   themeToggle: document.querySelector("#themeToggle"),
   heroBalanceAmount: document.querySelector("#heroBalanceAmount"),
   heroMonthChip: document.querySelector("#heroMonthChip"),
@@ -238,6 +253,55 @@ function hasFirebaseConfig() {
   return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
 }
 
+function getFirebaseApp() {
+  return window.firebase.apps?.length ? window.firebase.app() : window.firebase.initializeApp(firebaseConfig);
+}
+
+function requiresLogin() {
+  return hasFirebaseConfig() && window.FINANCEIRO_REQUIRE_LOGIN !== false;
+}
+
+function isAllowedEmail(email) {
+  const allowed = window.FINANCEIRO_ALLOWED_EMAILS;
+  if (!Array.isArray(allowed) || allowed.length === 0) return true;
+  return allowed.map((item) => String(item).toLowerCase()).includes(String(email || "").toLowerCase());
+}
+
+function setAuthMessage(text = "", mode = "") {
+  els.authMessage.textContent = text;
+  els.authMessage.className = `auth-message ${mode}`.trim();
+}
+
+function setAuthLocked(locked) {
+  document.body.classList.toggle("auth-locked", locked);
+  els.authScreen.hidden = !locked;
+  els.authUserPill.hidden = locked || !authState.user;
+  els.logoutButton.hidden = locked || !authState.user || !authState.enabled;
+}
+
+function friendlyAuthError(error) {
+  const code = error?.code || "";
+  if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found")) {
+    return "E-mail ou senha incorretos.";
+  }
+  if (code.includes("email-already-in-use")) return "Esse e-mail ja tem acesso. Use Entrar.";
+  if (code.includes("weak-password")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (code.includes("operation-not-allowed")) return "Ative Email/senha no Firebase Authentication antes de entrar.";
+  if (code.includes("too-many-requests")) return "Muitas tentativas. Espere um pouco e tente de novo.";
+  return "Nao foi possivel concluir o login agora.";
+}
+
+function disconnectCloud() {
+  cloud.unsubscribers.forEach((unsubscribe) => unsubscribe());
+  cloud.enabled = false;
+  cloud.ready = false;
+  cloud.db = null;
+  cloud.settingsRef = null;
+  cloud.entriesRef = null;
+  cloud.wishlistRef = null;
+  cloud.unsubscribers = [];
+}
+
 function loadLocalSnapshot() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -297,6 +361,8 @@ function normalizeWishlist(item) {
 }
 
 function setupCloudStorage() {
+  disconnectCloud();
+
   if (!hasFirebaseConfig()) {
     setStorageStatus("Banco local");
     return;
@@ -308,7 +374,7 @@ function setupCloudStorage() {
   }
 
   try {
-    const app = window.firebase.apps?.length ? window.firebase.app() : window.firebase.initializeApp(firebaseConfig);
+    const app = getFirebaseApp();
     cloud.db = window.firebase.firestore(app);
     cloud.enabled = true;
     cloud.settingsRef = cloud.db.collection("families").doc(familyId).collection("meta").doc("settings");
@@ -372,9 +438,95 @@ function setupCloudStorage() {
 
 function handleCloudError(error) {
   console.error(error);
-  cloud.enabled = false;
-  cloud.ready = false;
+  disconnectCloud();
   setStorageStatus("Banco com erro", "error");
+}
+
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+  if (!authState.authRef) return;
+
+  const email = els.authEmailInput.value.trim();
+  const password = els.authPasswordInput.value;
+  if (!email || !password) return;
+
+  setAuthMessage("Entrando...");
+  try {
+    await authState.authRef.signInWithEmailAndPassword(email, password);
+    els.authPasswordInput.value = "";
+  } catch (error) {
+    setAuthMessage(friendlyAuthError(error), "error");
+  }
+}
+
+async function handleCreateAccount() {
+  if (!authState.authRef) return;
+
+  const email = els.authEmailInput.value.trim();
+  const password = els.authPasswordInput.value;
+  if (!email || !password) {
+    setAuthMessage("Preencha e-mail e senha para criar o acesso.", "error");
+    return;
+  }
+
+  setAuthMessage("Criando acesso...");
+  try {
+    await authState.authRef.createUserWithEmailAndPassword(email, password);
+    els.authPasswordInput.value = "";
+  } catch (error) {
+    setAuthMessage(friendlyAuthError(error), "error");
+  }
+}
+
+async function handleLogout() {
+  if (!authState.authRef) return;
+  await authState.authRef.signOut();
+}
+
+function setupAuth() {
+  if (!requiresLogin()) {
+    setAuthLocked(false);
+    setupCloudStorage();
+    return;
+  }
+
+  if (!window.firebase?.auth) {
+    setAuthLocked(true);
+    setStorageStatus("Login indisponivel", "error");
+    setAuthMessage("Firebase Auth nao carregou. Recarregue a pagina em alguns segundos.", "error");
+    return;
+  }
+
+  const app = getFirebaseApp();
+  authState.authRef = window.firebase.auth(app);
+  authState.enabled = true;
+  els.createAccountButton.hidden = window.FINANCEIRO_ALLOW_SIGNUP === false;
+  setAuthLocked(true);
+  setStorageStatus("Aguardando login");
+
+  authState.authRef.onAuthStateChanged(async (user) => {
+    authState.ready = true;
+    authState.user = user;
+
+    if (!user) {
+      disconnectCloud();
+      setAuthLocked(true);
+      setStorageStatus("Entre para sincronizar");
+      setAuthMessage("");
+      return;
+    }
+
+    if (!isAllowedEmail(user.email)) {
+      setAuthMessage("Esse e-mail nao esta liberado para este financeiro.", "error");
+      await authState.authRef.signOut();
+      return;
+    }
+
+    els.authUserPill.textContent = user.email || "Logado";
+    setAuthLocked(false);
+    setAuthMessage("Login feito.", "ok");
+    setupCloudStorage();
+  });
 }
 
 async function saveSettings() {
@@ -819,19 +971,63 @@ function analyzeRisk(event) {
   else if (worstCommitment >= 0.7 || worstRemaining <= income * 0.15) level = "Medio";
 
   const description = els.riskDescriptionInput.value.trim() || "Nova compra";
+  const impactPercent = installmentAmount / income;
+  const reserveTarget = income * 0.1;
+  const recommendedMaxInstallment = income * 0.15;
+  const overdueCount = state.entries.filter((entry) => entry.status === "pending" && entry.date < todayKey()).length;
+  const bestDelay = rows.find((row) => row.simulatedExpense > 0 && row.remaining >= reserveTarget && row.commitment < 0.7);
   const recommendation =
     level === "Alto"
       ? "Essa compra pode prejudicar o caixa. Melhor reduzir o valor, aumentar parcelas, adiar ou quitar outra conta antes."
       : level === "Medio"
         ? "Essa compra cabe, mas deixa pouco respiro. Vale confirmar vencimentos e manter reserva para imprevistos."
         : "A compra parece caber no fluxo atual, considerando as contas ja registradas.";
+  const actions = [];
+
+  if (installmentAmount > recommendedMaxInstallment) {
+    actions.push(`Tente deixar a parcela abaixo de ${money(recommendedMaxInstallment)} para nao pesar mais de 15% da renda.`);
+  }
+  if (worstRemaining < reserveTarget) {
+    actions.push(`Mantenha pelo menos ${money(reserveTarget)} livres no pior mes antes de assumir essa compra.`);
+  }
+  if (overdueCount > 0) {
+    actions.push(`Resolva ${overdueCount} conta${overdueCount === 1 ? "" : "s"} pendente${overdueCount === 1 ? "" : "s"} atrasada${overdueCount === 1 ? "" : "s"} antes de comprar.`);
+  }
+  if (bestDelay && bestDelay.month !== rows[0].month) {
+    actions.push(`Se puder esperar, ${monthLabel(bestDelay.month)} parece um mes mais confortavel para iniciar.`);
+  }
+  if (actions.length === 0) {
+    actions.push("Compra liberada pelo fluxo atual. Ainda assim, registre a parcela no sistema para a projecao ficar correta.");
+  }
 
   els.riskResult.className = `risk-result risk-box ${riskClassFrom(level)}`;
   els.riskResult.innerHTML = `
-    <strong>Risco ${level}</strong>
-    <span>${escapeHtml(description)} adicionaria ${money(installmentAmount)} por mes durante ${installments} ${installments === 1 ? "mes" : "meses"}.</span>
-    <span>Maior aperto previsto em ${monthLabel(worstMonth)}, com sobra de ${money(worstRemaining)}.</span>
+    <strong>Assistente financeiro: risco ${level}</strong>
     <span>${recommendation}</span>
+    <div class="risk-summary-grid">
+      <div>
+        <span>Parcela</span>
+        <strong>${money(installmentAmount)}</strong>
+      </div>
+      <div>
+        <span>Impacto na renda</span>
+        <strong>${Math.round(impactPercent * 100)}%</strong>
+      </div>
+      <div>
+        <span>Pior mes</span>
+        <strong>${monthLabel(worstMonth)}</strong>
+      </div>
+      <div>
+        <span>Sobra no pior mes</span>
+        <strong>${money(worstRemaining)}</strong>
+      </div>
+    </div>
+    <div class="assistant-advice">
+      <span>Plano sugerido para ${escapeHtml(description)}</span>
+      <ul>
+        ${actions.map((action) => `<li>${action}</li>`).join("")}
+      </ul>
+    </div>
     <div class="risk-months">
       ${rows
         .slice(0, 6)
@@ -840,6 +1036,7 @@ function analyzeRisk(event) {
             <div>
               <span>${monthLabel(row.month)}</span>
               <strong>${money(row.remaining)} livre</strong>
+              <small>${Math.round(row.commitment * 100)}% comprometido</small>
             </div>
           `,
         )
@@ -925,6 +1122,9 @@ async function handleListClick(event) {
 }
 
 function bindEvents() {
+  els.authForm.addEventListener("submit", handleAuthSubmit);
+  els.createAccountButton.addEventListener("click", handleCreateAccount);
+  els.logoutButton.addEventListener("click", handleLogout);
   els.settingsForm.addEventListener("submit", handleSettingsSubmit);
   els.entryForm.addEventListener("submit", handleEntrySubmit);
   els.riskForm.addEventListener("submit", analyzeRisk);
@@ -978,7 +1178,7 @@ function init() {
   bindEvents();
   initPrompt();
   render();
-  setupCloudStorage();
+  setupAuth();
 }
 
 init();

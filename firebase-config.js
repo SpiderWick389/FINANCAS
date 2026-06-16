@@ -8,3 +8,6 @@ window.FINANCEIRO_FIREBASE_CONFIG = {
 };
 
 window.FINANCEIRO_FAMILY_ID = "casal-principal";
+window.FINANCEIRO_REQUIRE_LOGIN = true;
+window.FINANCEIRO_ALLOW_SIGNUP = true;
+window.FINANCEIRO_ALLOWED_EMAILS = [];

@@ -19,11 +19,36 @@
         </div>
         <div class="header-tools">
           <span class="storage-status" id="storageStatus">Banco local</span>
+          <span class="auth-user" id="authUserPill" hidden></span>
+          <button class="small-button auth-logout" id="logoutButton" type="button" hidden>Sair</button>
           <button class="icon-button" id="themeToggle" type="button" aria-label="Alternar tema">
             <span class="theme-glyph" aria-hidden="true"></span>
           </button>
         </div>
       </header>
+
+      <section class="auth-screen" id="authScreen" hidden>
+        <div class="auth-card">
+          <p class="eyebrow">Acesso do casal</p>
+          <h2>Entrar no financeiro</h2>
+          <p>Use o e-mail e a senha cadastrados no Firebase para sincronizar as informacoes em nuvem.</p>
+
+          <form id="authForm" class="stacked-form">
+            <label>
+              E-mail
+              <input id="authEmailInput" type="email" autocomplete="email" placeholder="voce@email.com" required />
+            </label>
+            <label>
+              Senha
+              <input id="authPasswordInput" type="password" autocomplete="current-password" minlength="6" placeholder="Minimo 6 caracteres" required />
+            </label>
+            <button class="button primary" type="submit">Entrar</button>
+            <button class="button ghost" id="createAccountButton" type="button">Criar acesso inicial</button>
+          </form>
+
+          <div class="auth-message" id="authMessage"></div>
+        </div>
+      </section>
 
       <main class="tab-shell">
         <section class="tab-screen is-active" id="homePanel" data-tab-panel="home" aria-labelledby="homeTab">
@@ -312,7 +337,7 @@
               </form>
 
               <div id="riskResult" class="risk-result empty-state">
-                Configure sua renda e simule uma compra para ver o impacto nos proximos meses.
+                Configure sua renda e simule uma compra para o assistente mostrar risco, pior mes e plano sugerido.
               </div>
             </section>
           </section>
@@ -409,6 +434,7 @@
 
     <script src="firebase-config.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
     <script defer src="app.js"></script>
   </body>

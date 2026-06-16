@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /families/{familyId}/{document=**} {
-      allow read, write: if familyId == "casal-principal";
+      allow read, write: if familyId == "casal-principal" && request.auth != null;
     }
   }
 }
