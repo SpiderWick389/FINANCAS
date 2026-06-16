@@ -281,14 +281,26 @@ function setAuthLocked(locked) {
 
 function friendlyAuthError(error) {
   const code = error?.code || "";
+  let message = "Nao foi possivel concluir o login agora.";
   if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found")) {
-    return "E-mail ou senha incorretos.";
+    message = "E-mail ou senha incorretos. Se for o primeiro acesso, use Criar acesso inicial.";
+  } else if (code.includes("email-already-in-use")) {
+    message = "Esse e-mail ja tem acesso. Use Entrar.";
+  } else if (code.includes("weak-password")) {
+    message = "A senha precisa ter pelo menos 6 caracteres.";
+  } else if (code.includes("operation-not-allowed") || code.includes("configuration-not-found")) {
+    message = "Ative Authentication com Email/senha no Firebase antes de entrar.";
+  } else if (code.includes("unauthorized-domain")) {
+    message = "Adicione spiderwick389.github.io nos dominios autorizados do Firebase Authentication.";
+  } else if (code.includes("invalid-email")) {
+    message = "Confira o formato do e-mail.";
+  } else if (code.includes("network-request-failed")) {
+    message = "Falha de internet. Confira a conexao e tente de novo.";
+  } else if (code.includes("too-many-requests")) {
+    message = "Muitas tentativas. Espere um pouco e tente de novo.";
   }
-  if (code.includes("email-already-in-use")) return "Esse e-mail ja tem acesso. Use Entrar.";
-  if (code.includes("weak-password")) return "A senha precisa ter pelo menos 6 caracteres.";
-  if (code.includes("operation-not-allowed")) return "Ative Email/senha no Firebase Authentication antes de entrar.";
-  if (code.includes("too-many-requests")) return "Muitas tentativas. Espere um pouco e tente de novo.";
-  return "Nao foi possivel concluir o login agora.";
+
+  return code ? `${message} (${code})` : message;
 }
 
 function disconnectCloud() {
