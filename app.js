@@ -31,6 +31,13 @@ const authState = {
   authRef: null,
 };
 
+const aiState = {
+  callable: null,
+  messages: [],
+  imageDataUrl: "",
+  imageName: "",
+};
+
 const els = {
   storageStatus: document.querySelector("#storageStatus"),
   authScreen: document.querySelector("#authScreen"),
@@ -89,6 +96,13 @@ const els = {
   wishlistAmountInput: document.querySelector("#wishlistAmountInput"),
   wishlistPriorityInput: document.querySelector("#wishlistPriorityInput"),
   wishlistList: document.querySelector("#wishlistList"),
+  aiStatus: document.querySelector("#aiStatus"),
+  aiChatList: document.querySelector("#aiChatList"),
+  aiChatForm: document.querySelector("#aiChatForm"),
+  aiMessageInput: document.querySelector("#aiMessageInput"),
+  aiImageInput: document.querySelector("#aiImageInput"),
+  aiImagePreview: document.querySelector("#aiImagePreview"),
+  aiSendButton: document.querySelector("#aiSendButton"),
   tabPanels: Array.from(document.querySelectorAll("[data-tab-panel]")),
   tabButtons: Array.from(document.querySelectorAll("[data-tab-target]")),
   tabOpeners: Array.from(document.querySelectorAll("[data-open-tab]")),
@@ -206,6 +220,7 @@ function tabFromHash(hash = window.location.hash) {
     projectionPanel: "month",
     registerPanel: "register",
     riskPanel: "risk",
+    aiPanel: "ai",
     wishlistPanel: "wishlist",
     settingsPanel: "settings",
   };
@@ -312,6 +327,25 @@ function disconnectCloud() {
   cloud.entriesRef = null;
   cloud.wishlistRef = null;
   cloud.unsubscribers = [];
+}
+
+function setupAiService() {
+  aiState.callable = null;
+
+  if (!hasFirebaseConfig()) {
+    setAiStatus("IA indisponivel sem Firebase configurado.", "error");
+    return;
+  }
+
+  if (!window.firebase?.functions) {
+    setAiStatus("SDK do Firebase Functions nao carregou. Recarregue a pagina.", "error");
+    return;
+  }
+
+  const app = getFirebaseApp();
+  const functions = window.firebase.functions(app);
+  aiState.callable = functions.httpsCallable("financeAiChat");
+  setAiStatus("IA pronta para duvidas e fotos. Se ainda nao foi publicada, o envio vai avisar.");
 }
 
 function loadLocalSnapshot() {
@@ -522,9 +556,11 @@ function setupAuth() {
 
     if (!user) {
       disconnectCloud();
+      aiState.callable = null;
       setAuthLocked(true);
       setStorageStatus("Entre para sincronizar");
       setAuthMessage("");
+      setAiStatus("Entre no app para usar a IA.");
       return;
     }
 
@@ -538,6 +574,7 @@ function setupAuth() {
     setAuthLocked(false);
     setAuthMessage("Login feito.", "ok");
     setupCloudStorage();
+    setupAiService();
   });
 }
 
@@ -867,6 +904,168 @@ function renderWishlist() {
     .join("");
 }
 
+function setAiStatus(text, mode = "") {
+  if (!els.aiStatus) return;
+  els.aiStatus.textContent = text;
+  els.aiStatus.className = `ai-status ${mode}`.trim();
+}
+
+function renderAiChat() {
+  if (!aiState.messages.length) {
+    els.aiChatList.innerHTML = `
+      <div class="ai-empty">
+        Pergunte sobre compras, parcelas, dividas, comprovantes ou mande uma foto de conta para a IA analisar.
+      </div>
+    `;
+    return;
+  }
+
+  els.aiChatList.innerHTML = aiState.messages
+    .map(
+      (message) => `
+        <article class="ai-message ${message.role === "assistant" ? "assistant" : "user"}">
+          <strong>${message.role === "assistant" ? "IA" : "Voce"}</strong>
+          ${message.imageName ? `<span class="ai-attachment">Foto: ${escapeHtml(message.imageName)}</span>` : ""}
+          <p>${escapeHtml(message.text).replaceAll("\n", "<br />")}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  els.aiChatList.scrollTop = els.aiChatList.scrollHeight;
+}
+
+function buildAiFinanceContext() {
+  const month = els.monthFilter.value || currentMonthKey();
+  const totals = totalsFor(entriesForMonth(month));
+  const pending = state.entries
+    .filter((entry) => entry.status !== "paid")
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 8)
+    .map((entry) => ({
+      descricao: entry.description,
+      valor: entry.amount,
+      vencimento: entry.date,
+      categoria: entry.category,
+      pessoa: entry.person,
+      parcela: `${entry.installmentNumber}/${entry.installments}`,
+    }));
+  const wishlist = state.wishlist
+    .filter((item) => item.status !== "bought")
+    .slice(0, 6)
+    .map((item) => ({ item: item.title, valor: item.amount, prioridade: item.priority }));
+
+  return {
+    mesAtual: month,
+    rendaMensal: state.settings.monthlyIncome,
+    saldoAtual: state.settings.currentBalance,
+    totalDoMes: totals.total,
+    contasPagas: totals.paid,
+    contasPendentes: totals.pending,
+    pendencias: pending,
+    desejos: wishlist,
+  };
+}
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Nao foi possivel ler a imagem."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("Arquivo de imagem invalido."));
+      image.onload = () => {
+        const maxSide = 1400;
+        const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+        const width = Math.round(image.width * scale);
+        const height = Math.round(image.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleAiImageChange() {
+  const file = els.aiImageInput.files?.[0];
+  aiState.imageDataUrl = "";
+  aiState.imageName = "";
+  els.aiImagePreview.hidden = true;
+  els.aiImagePreview.textContent = "";
+
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    setAiStatus("Escolha um arquivo de imagem.", "error");
+    return;
+  }
+
+  setAiStatus("Preparando foto...");
+  try {
+    aiState.imageDataUrl = await compressImageFile(file);
+    aiState.imageName = file.name;
+    els.aiImagePreview.hidden = false;
+    els.aiImagePreview.innerHTML = `<span>${escapeHtml(file.name)}</span><img src="${aiState.imageDataUrl}" alt="Previa da foto anexada" />`;
+    setAiStatus("Foto pronta. Escreva sua pergunta e envie.");
+  } catch (error) {
+    setAiStatus(error.message || "Nao foi possivel anexar a foto.", "error");
+  }
+}
+
+async function handleAiSubmit(event) {
+  event.preventDefault();
+  const text = els.aiMessageInput.value.trim();
+  if (!text && !aiState.imageDataUrl) {
+    els.aiMessageInput.focus();
+    return;
+  }
+
+  aiState.messages.push({ role: "user", text: text || "Analise a foto enviada.", imageName: aiState.imageName });
+  renderAiChat();
+  els.aiMessageInput.value = "";
+  els.aiSendButton.disabled = true;
+  setAiStatus("IA analisando...");
+
+  if (!aiState.callable) {
+    aiState.messages.push({
+      role: "assistant",
+      text: "A funcao da IA ainda nao esta publicada no Firebase Functions. Depois do deploy, este chat vai responder com IA real.",
+    });
+    renderAiChat();
+    els.aiSendButton.disabled = false;
+    setAiStatus("Backend da IA pendente de deploy.", "error");
+    return;
+  }
+
+  try {
+    const result = await aiState.callable({
+      message: text,
+      imageDataUrl: aiState.imageDataUrl || null,
+      imageName: aiState.imageName || null,
+      financeContext: buildAiFinanceContext(),
+    });
+    aiState.messages.push({ role: "assistant", text: result.data?.answer || "A IA respondeu, mas sem texto." });
+    setAiStatus("IA pronta para a proxima pergunta.");
+    aiState.imageDataUrl = "";
+    aiState.imageName = "";
+    els.aiImageInput.value = "";
+    els.aiImagePreview.hidden = true;
+    els.aiImagePreview.textContent = "";
+  } catch (error) {
+    const message = error?.message || "Nao foi possivel falar com a IA agora.";
+    aiState.messages.push({ role: "assistant", text: `Erro na IA: ${message}` });
+    setAiStatus("Falha ao chamar a IA. Confira se a Cloud Function foi publicada.", "error");
+  } finally {
+    els.aiSendButton.disabled = false;
+    renderAiChat();
+  }
+}
+
 function renderSettingsInputs() {
   els.monthlyIncomeInput.value = state.settings.monthlyIncome || "";
   els.currentBalanceInput.value = state.settings.currentBalance || "";
@@ -880,6 +1079,7 @@ function render() {
   renderProjection();
   renderHistory();
   renderWishlist();
+  renderAiChat();
 }
 
 function createEntriesFromForm() {
@@ -1141,6 +1341,8 @@ function bindEvents() {
   els.entryForm.addEventListener("submit", handleEntrySubmit);
   els.riskForm.addEventListener("submit", analyzeRisk);
   els.wishlistForm.addEventListener("submit", handleWishlistSubmit);
+  els.aiChatForm.addEventListener("submit", handleAiSubmit);
+  els.aiImageInput.addEventListener("change", handleAiImageChange);
   els.monthFilter.addEventListener("input", render);
   els.monthFilter.addEventListener("change", render);
 

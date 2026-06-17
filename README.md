@@ -13,6 +13,7 @@ Sistema simples para controlar contas, compras, Pix, acordos, parcelas e desejos
 - Pergunta inicial diaria para lembrar de registrar conta nova.
 - Login por e-mail e senha com Firebase Authentication.
 - Banco compartilhado em nuvem com Firebase/Firestore quando configurado.
+- Chat de IA com suporte a fotos via Firebase Functions e OpenAI.
 
 ## Como publicar no GitHub Pages
 
@@ -51,6 +52,32 @@ window.FINANCEIRO_ALLOWED_EMAILS = [];
 
 Enquanto o Firebase nao estiver preenchido, o app usa cache local do navegador. Depois que o Firebase estiver configurado, os dados passam a sincronizar entre os aparelhos.
 
+## Como publicar a IA
+
+A IA roda em `functions/financeAiChat`, uma Cloud Function protegida por login Firebase. A chave da OpenAI deve ficar como secret do Firebase Functions, nunca no frontend.
+
+1. Instale dependencias da funcao:
+
+```bash
+cd functions
+npm install
+cd ..
+```
+
+2. Salve a chave da OpenAI como secret no Firebase:
+
+```bash
+firebase functions:secrets:set OPENAI_API_KEY
+```
+
+3. Publique a funcao:
+
+```bash
+firebase deploy --only functions
+```
+
+Depois do deploy, a aba `IA` do app passa a responder perguntas e analisar fotos.
+
 ## Login
 
 Com `FINANCEIRO_ALLOW_SIGNUP = true`, a tela de login permite criar o primeiro acesso. Depois de criar o seu login e o da sua esposa, voce pode trocar para `false` para esconder o botao de cadastro inicial.
@@ -63,4 +90,4 @@ window.FINANCEIRO_ALLOWED_EMAILS = ["seu@email.com", "email-da-esposa@email.com"
 
 ## Observacao de seguranca
 
-As regras atuais exigem login no Firebase. A IA externa ainda precisa de backend seguro, porque chave de API nao deve ficar exposta em site publico do GitHub Pages.
+As regras atuais exigem login no Firebase. A chave da OpenAI fica apenas no Firebase Functions como secret.
