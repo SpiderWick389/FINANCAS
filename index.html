@@ -385,35 +385,6 @@
           </section>
         </section>
 
-        <section class="tab-screen" id="aiPanel" data-tab-panel="ai" aria-labelledby="aiTab" hidden>
-          <section class="workspace-grid single-workspace">
-            <section class="panel ai-panel">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">IA financeira</p>
-                  <h2>Chat com fotos</h2>
-                </div>
-              </div>
-
-              <div class="ai-status" id="aiStatus">A IA usa seus dados cadastrados para responder duvidas, analisar contas e interpretar fotos.</div>
-              <div class="ai-chat-list" id="aiChatList" aria-live="polite"></div>
-
-              <form id="aiChatForm" class="ai-chat-form">
-                <label class="ai-photo-picker">
-                  <input id="aiImageInput" type="file" accept="image/*" />
-                  <span>Anexar foto</span>
-                </label>
-                <div class="ai-image-preview" id="aiImagePreview" hidden></div>
-                <label class="ai-message-label">
-                  Mensagem
-                  <textarea id="aiMessageInput" rows="3" maxlength="1200" placeholder="Ex: essa conta esta cara? Posso parcelar essa compra? Analise esse comprovante."></textarea>
-                </label>
-                <button class="button primary" id="aiSendButton" type="submit">Enviar para IA</button>
-              </form>
-            </section>
-          </section>
-        </section>
-
         <section class="tab-screen" id="settingsPanel" data-tab-panel="settings" hidden>
           <section class="workspace-grid single-workspace">
             <section class="panel settings-panel">
@@ -457,10 +428,6 @@
           <span class="dock-icon">%</span>
           <span>Risco</span>
         </button>
-        <button id="aiTab" type="button" role="tab" aria-selected="false" data-tab-target="ai">
-          <span class="dock-icon">AI</span>
-          <span>IA</span>
-        </button>
         <button id="wishlistTab" type="button" role="tab" aria-selected="false" data-tab-target="wishlist">
           <span class="dock-icon">#</span>
           <span>Lista</span>
@@ -476,7 +443,6 @@
     <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/12.14.0/firebase-functions-compat.js"></script>
     <script defer src="app.js"></script>
   </body>
 </html>
