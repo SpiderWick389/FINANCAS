@@ -63,4 +63,6 @@ window.FINANCEIRO_ALLOWED_EMAILS = ["seu@email.com", "email-da-esposa@email.com"
 
 ## Observacao de seguranca
 
-As regras atuais exigem login no Firebase. A IA externa ainda precisa de backend seguro, porque chave de API nao deve ficar exposta em site publico do GitHub Pages.
+As regras atuais exigem login no Firebase. Para fechar o acesso somente ao casal, edite `firestore.allowed-emails.rules`, troque `email-da-esposa@gmail.com` pelo e-mail real e publique essas regras no Firestore.
+
+A IA ficou fora desta versao para evitar custos do Firebase Blaze e da API externa.
